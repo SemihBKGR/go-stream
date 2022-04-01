@@ -5,6 +5,7 @@ const (
 	complete
 	pass
 	terminate
+	skip
 )
 
 type dataSignal[E any] struct {

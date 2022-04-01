@@ -15,6 +15,19 @@ func sliceIterator[E any](slice []E) iterator[E] {
 	}
 }
 
+func rangeIterator(start, end int) iterator[int] {
+	return &sourceIterator[int]{
+		onNext: func(start, end int) func() *int {
+			return func() *int {
+				if start < end {
+					return &start
+				}
+				return nil
+			}
+		}(start, end),
+	}
+}
+
 func filterIterator[E any](chainedIterator iterator[E], predicate func(E) bool) iterator[E] {
 	return &intermediateIterator[E]{
 		chainedIterator: chainedIterator,
@@ -60,6 +73,20 @@ func peekIterator[E any](chainedIterator iterator[E], consumer func(E)) iterator
 		afterNext: func(d *dataSignal[E]) *dataSignal[E] {
 			if d.signal == consume {
 				consumer(*d.data)
+			}
+			return d
+		},
+	}
+}
+
+func skipIterator[E any](chainedIterator iterator[E], count int) iterator[E] {
+	return &intermediateIterator[E]{
+		chainedIterator: chainedIterator,
+		beforeNext:      func() *dataSignal[E] { return newDataSignal[E](nil, pass) },
+		afterNext: func(d *dataSignal[E]) *dataSignal[E] {
+			if d.signal == consume && count > 0 {
+				count--
+				return newDataSignal(d.data, skip)
 			}
 			return d
 		},
