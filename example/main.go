@@ -13,15 +13,10 @@ func main() {
 		data[i] = i
 	}
 
-	stream.StreamOf(data).
-		Filter(func(e *int) bool {
-			return *e%2 != 0
-		}).
-		Peek(func(e *int) {
-			fmt.Println(*e)
-		}).
-		Limit(5).
-		ForEach(func(e *int) {
-			fmt.Println(*e)
-		})
+	stream.StreamOf(data).Filter(func(i int) bool {
+		return i%2 != 0
+	}).ForEach(func(i int) {
+		fmt.Println(i)
+	})
+
 }
