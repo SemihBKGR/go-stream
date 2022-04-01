@@ -43,16 +43,7 @@ type intermediateIterator[E any] struct {
 
 func (i *intermediateIterator[E]) next() *dataSignal[E] {
 	if d := i.beforeNext(); d.signal == terminate {
-		return d
+		return newDataSignal[E](nil, complete)
 	}
-	return i.afterNext(i.chainedIterator.next())
-}
-
-type terminalIterator[E any] struct {
-	chainedIterator iterator[E]
-	afterNext       func(*dataSignal[E]) *dataSignal[E]
-}
-
-func (i *terminalIterator[E]) next() *dataSignal[E] {
 	return i.afterNext(i.chainedIterator.next())
 }

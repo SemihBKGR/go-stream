@@ -2,11 +2,11 @@ package stream
 
 type Stream[E any] interface {
 	Filter(predicate func(E) bool) Stream[E]
-	//Limit(size int) Stream[E]
-	//Peek(consumer func(E)) Stream[E]
+	Limit(size int) Stream[E]
+	Peek(consumer func(E)) Stream[E]
 	ForEach(consumer func(E))
-	//AnyMatch(predicate func(E) bool) bool
-	//FirstMatch(predicate func(E) bool) E
+	AnyMatch(predicate func(E) bool) bool
+	FirstMatch(predicate func(E) bool) E
 }
 
 type stream[E any] struct {
@@ -19,17 +19,52 @@ func (s *stream[E]) Filter(predicate func(E) bool) Stream[E] {
 	}
 }
 
-func (s *stream[E]) ForEach(consumer func(E)) {
-	startStream(&stream[E]{
-		iterator: forEachIterator(s.iterator, consumer),
-	})
+func (s *stream[E]) Limit(size int) Stream[E] {
+	return &stream[E]{
+		iterator: limitPeek(s.iterator, size),
+	}
 }
 
-func startStream[E any](s *stream[E]) {
-	ds := s.iterator.next()
-	for ds.signal == consume {
-		ds = s.iterator.next()
+func (s *stream[E]) Peek(consumer func(E)) Stream[E] {
+	return &stream[E]{
+		iterator: peekIterator(s.iterator, consumer),
 	}
+}
+
+func (s *stream[E]) ForEach(consumer func(E)) {
+	d := s.iterator.next()
+	for d.signal != complete {
+		if d.signal == consume {
+			consumer(*d.data)
+		}
+		d = s.iterator.next()
+	}
+}
+
+func (s *stream[E]) AnyMatch(predicate func(E) bool) bool {
+	d := s.iterator.next()
+	for d.signal != complete {
+		if d.signal == consume {
+			if predicate(*d.data) {
+				return true
+			}
+		}
+		d = s.iterator.next()
+	}
+	return false
+}
+
+func (s *stream[E]) FirstMatch(predicate func(E) bool) E {
+	d := s.iterator.next()
+	for d.signal != complete {
+		if d.signal == consume {
+			if predicate(*d.data) {
+				return *d.data
+			}
+		}
+		d = s.iterator.next()
+	}
+	panic("not any match")
 }
 
 func StreamOf[E any](slice []E) Stream[E] {

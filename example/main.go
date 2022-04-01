@@ -13,10 +13,59 @@ func main() {
 		data[i] = i
 	}
 
-	stream.StreamOf(data).Filter(func(i int) bool {
-		return i%2 != 0
-	}).ForEach(func(i int) {
-		fmt.Println(i)
-	})
+	fmt.Println("---------ForEach---------")
+
+	stream.StreamOf(data).
+		Filter(func(i int) bool {
+			return i%2 != 0
+		}).
+		Peek(func(i int) {
+			fmt.Printf("Peek-1: %d\n", i)
+		}).
+		Limit(10).
+		Peek(func(i int) {
+			fmt.Printf("Peek-2: %d\n", i)
+		}).
+		ForEach(func(i int) {
+			fmt.Printf("ForEach: %d\n", i)
+		})
+
+	fmt.Println("---------AnyMatch---------")
+
+	anyMatch := stream.StreamOf(data).
+		Filter(func(i int) bool {
+			return i%2 != 0
+		}).
+		Peek(func(i int) {
+			fmt.Printf("Peek-1: %d\n", i)
+		}).
+		Limit(10).
+		Peek(func(i int) {
+			fmt.Printf("Peek-2: %d\n", i)
+		}).
+		AnyMatch(func(i int) bool {
+			return i > 10
+		})
+
+	fmt.Printf("Result: %v\n", anyMatch)
+
+	fmt.Println("---------FirstMatch---------")
+
+	firstMatch := stream.StreamOf(data).
+		Filter(func(i int) bool {
+			return i%2 != 0
+		}).
+		Peek(func(i int) {
+			fmt.Printf("Peek-1: %d\n", i)
+		}).
+		Limit(10).
+		Peek(func(i int) {
+			fmt.Printf("Peek-2: %d\n", i)
+		}).
+		FirstMatch(func(i int) bool {
+			return i > 10
+		})
+
+	fmt.Printf("Result: %d\n", firstMatch)
 
 }
