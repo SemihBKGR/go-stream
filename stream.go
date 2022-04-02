@@ -28,6 +28,24 @@ func (s *Stream[E]) Skip(count int) *Stream[E] {
 	}
 }
 
+func (s *Stream[E]) MapToAny(function func(*E) any) *Stream[any] {
+	return &Stream[any]{
+		iterator: mapIterator(s.iterator, function),
+	}
+}
+
+func (s *Stream[E]) MapToInt(function func(*E) int) *Stream[int] {
+	return &Stream[int]{
+		iterator: mapIterator(s.iterator, function),
+	}
+}
+
+func (s *Stream[E]) MapToString(function func(*E) string) *Stream[string] {
+	return &Stream[string]{
+		iterator: mapIterator(s.iterator, function),
+	}
+}
+
 func (s *Stream[E]) ForEach(consumer func(E)) {
 	d := s.iterator.next()
 	for d.signal != complete {

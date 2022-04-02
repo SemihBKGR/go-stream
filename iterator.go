@@ -48,3 +48,25 @@ func (i *intermediateIterator[E]) next() *dataSignal[E] {
 	}
 	return i.afterNext(i.chainedIterator.next())
 }
+
+type mappedIterator[E any, M any] struct {
+	iterator[M]
+	chainedIterator iterator[E]
+	function        func(*E) M
+}
+
+func (i *mappedIterator[E, M]) next() *dataSignal[M] {
+	d := i.chainedIterator.next()
+	if d.signal == consume {
+		e := i.function(d.data)
+		return newDataSignal(&e, d.signal)
+	}
+	return newDataSignal[M](nil, d.signal)
+}
+
+func mapChainedIterator[E any, M any](chainedIterator iterator[E], function func(*E) M) iterator[M] {
+	return &mappedIterator[E, M]{
+		chainedIterator: chainedIterator,
+		function:        function,
+	}
+}

@@ -92,3 +92,11 @@ func skipIterator[E any](chainedIterator iterator[E], count int) iterator[E] {
 		},
 	}
 }
+
+func mapIterator[E any, M any](chainedIterator iterator[E], function func(*E) M) iterator[M] {
+	return &intermediateIterator[M]{
+		chainedIterator: mapChainedIterator(chainedIterator, function),
+		beforeNext:      func() *dataSignal[M] { return newDataSignal[M](nil, pass) },
+		afterNext:       func(d *dataSignal[M]) *dataSignal[M] { return d },
+	}
+}
